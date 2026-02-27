@@ -67,7 +67,7 @@ class OpenRouterLLM extends llm.LLM {
                 temperature: 0.85,
             }, {
                 headers: {
-                    'Authorization': \`Bearer \${OPENROUTER_API_KEY}\`,
+                    'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
                     'Content-Type': 'application/json',
                     'HTTP-Referer': 'https://miku-assistant.app',
                 }
@@ -75,25 +75,25 @@ class OpenRouterLLM extends llm.LLM {
 
             const content = response.data.choices[0].message.content;
 
-            const actionMatch = content.match(/\\[ACTION:([^\\]]+)\\]/);
+            const actionMatch = content.match(/\[ACTION:([^\]]+)\]/);
             if (actionMatch && ctx.room) {
-               const actionStr = actionMatch[1];
-               console.log("Sending action to phone:", actionStr);
-               
-               const encoder = new TextEncoder();
-               const data = encoder.encode(JSON.stringify({ action: actionStr }));
-               await ctx.room.localParticipant.publishData(data, { reliable: true });
+                const actionStr = actionMatch[1];
+                console.log("Sending action to phone:", actionStr);
+
+                const encoder = new TextEncoder();
+                const data = encoder.encode(JSON.stringify({ action: actionStr }));
+                await ctx.room.localParticipant.publishData(data, { reliable: true });
             }
 
-            const spokenText = content.replace(/\\[ACTION:[^\\]]+\\]/g, "").trim();
+            const spokenText = content.replace(/\[ACTION:[^\]]+\]/g, "").trim();
 
             const stream = new llm.ChatChunkStream();
             stream.push({
                 choices: [{ delta: { content: spokenText, role: 'assistant' } }]
             });
-            stream.push(null); 
+            stream.push(null);
             return stream;
-            
+
         } catch (error) {
             console.error("OpenRouter Error:", error);
             const stream = new llm.ChatChunkStream();
@@ -118,7 +118,7 @@ const agent = defineAgent({
             ctx,
             openRouter,
             null,
-            null  
+            null
         );
         agentPipeline.start(ctx.room);
     }
@@ -148,8 +148,8 @@ app.post('/webhook', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(\`✅ VADOS Backend is running on port \${PORT}\`);
-    
+    console.log(`✅ VADOS Backend is running on port ${PORT}`);
+
     // Start the agent worker locally alongside the express server
     cli.runApp(new WorkerOptions({ agent: agent }));
 });
