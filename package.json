@@ -2,12 +2,12 @@
   "name": "functions",
   "description": "Cloud Functions for Firebase",
   "scripts": {
-    "start": "node server.js"
+    "start": "node agent.js start"
   },
   "engines": {
     "node": "24"
   },
-  "main": "server.js",
+  "main": "agent.js",
   "dependencies": {
     "@google/genai": "^1.43.0",
     "@livekit/agents": "^1.0.47",

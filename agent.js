@@ -1,19 +1,6 @@
 require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const { WebhookReceiver } = require("livekit-server-sdk");
 const { cli, WorkerOptions, defineAgent, llm, pipeline } = require("@livekit/agents");
 const axios = require("axios");
-
-const app = express();
-app.use(cors());
-// Raw parser is needed for Webhooks
-app.use(express.raw({ type: 'application/webhook+json' }));
-
-// ─────────────────────────────────────────────────────────────
-// VADOS MIKU BRAIN - Node.js Agent
-// OpenRouter LLM: nousresearch/hermes-2-pro-llama-3-8b
-// ─────────────────────────────────────────────────────────────
 
 const OPENROUTER_API_KEY = "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";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -112,44 +99,18 @@ const agent = defineAgent({
         console.log("Miku Agent connected to room:", ctx.room.name);
 
         const openRouter = new OpenRouterLLM();
-        const { tts } = require("@google/genai"); // Free TTS fallback for now
 
         const agentPipeline = new pipeline.VoicePipelineAgent(
-            ctx,
             openRouter,
-            null,
-            null
+            new pipeline.VoicePipelineAgent.Options()
         );
-        agentPipeline.start(ctx.room);
+        agentPipeline.start(ctx.room, ctx.participant);
     }
 });
 
+module.exports = agent;
+module.exports.default = agent;
 
-// ─────────────────────────────────────────────────────────────
-// EXPRESS SERVER SETUP (For Webhooks)
-// ─────────────────────────────────────────────────────────────
-
-app.post('/webhook', async (req, res) => {
-    const receiver = new WebhookReceiver(
-        process.env.LIVEKIT_API_KEY || "devkey",
-        process.env.LIVEKIT_API_SECRET || "secret"
-    );
-
-    try {
-        const event = receiver.receive(req.body, req.get("Authorization"));
-        console.log("Received Webhook:", event.event);
-
-        res.status(200).send("Webhook received");
-    } catch (error) {
-        console.error("Error verifying webhook:", error);
-        res.status(401).send("Unauthorized");
-    }
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`✅ VADOS Backend is running on port ${PORT}`);
-
-    // Start the agent worker locally alongside the express server
-    cli.runApp(new WorkerOptions({ agent: agent }));
-});
+if (require.main === module) {
+    cli.runApp(new WorkerOptions({ agent: __filename }));
+}
