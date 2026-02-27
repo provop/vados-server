@@ -1,7 +1,8 @@
 require('dotenv').config();
 const { cli, WorkerOptions, defineAgent, llm, pipeline } = require("@livekit/agents");
+const deepgram = require("@livekit/agents-plugin-deepgram");
+const silero = require("@livekit/agents-plugin-silero");
 const axios = require("axios");
-
 const OPENROUTER_API_KEY = "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";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -101,8 +102,10 @@ const agent = defineAgent({
         const openRouter = new OpenRouterLLM();
 
         const agentPipeline = new pipeline.VoicePipelineAgent(
+            await silero.VAD.load(),
+            new deepgram.STT(),
             openRouter,
-            new pipeline.VoicePipelineAgent.Options()
+            new deepgram.TTS(),
         );
         agentPipeline.start(ctx.room, ctx.participant);
     }

@@ -11,6 +11,8 @@
   "dependencies": {
     "@google/genai": "^1.43.0",
     "@livekit/agents": "^1.0.47",
+    "@livekit/agents-plugin-deepgram": "^1.0.48",
+    "@livekit/agents-plugin-silero": "^1.0.48",
     "@livekit/rtc-node": "^0.13.24",
     "axios": "^1.13.5",
     "cors": "^2.8.6",
